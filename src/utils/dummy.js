@@ -1,0 +1,15 @@
+export const DUMMY_DATA = [
+    { id: 1, judul: 'Kaleng susu', jenisSampah: 'Organik', tanggal: '18 Juni 2026 18.00', koin: 10000 },
+    { id: 2, judul: 'Sisa sisa tulang ayam', jenisSampah: 'Anorganik', tanggal: '18 Juni 2026 18.00', koin: 25000 },
+    { id: 3, judul: 'Barang elektronik', jenisSampah: 'Organik', tanggal: '18 Juni 2026 18.00', koin: 35000 },
+    { id: 4, judul: 'Sisa sisa makanan', jenisSampah: 'B3', tanggal: '18 Juni 2026 18.00', koin: 5000 },
+    { id: 5, judul: 'Kertas', jenisSampah: 'B3', tanggal: '18 Juni 2026 18.00', koin: 2000 },
+    { id: 6, judul: 'Tas', jenisSampah: 'Organik', tanggal: '18 Juni 2026 18.00', koin: 7000 },
+    { id: 7, judul: 'Barang barang bekas', jenisSampah: 'Organik', tanggal: '18 Juni 2026 18.00', koin: 10000 },
+    { id: 8, judul: 'Buku buku', jenisSampah: 'Anorganik', tanggal: '18 Juni 2026 18.00', koin: 15000 },
+    { id: 9, judul: 'Pakaian baju', jenisSampah: 'B3', tanggal: '18 Juni 2026 18.00', koin: 20000 },
+    { id: 10, judul: 'Aksesoris', jenisSampah: 'B3', tanggal: '18 Juni 2026 18.00', koin: 50000 },
+    { id: 11, judul: 'Botol plastik', jenisSampah: 'Anorganik', tanggal: '18 Juni 2026 18.00', koin: 8000 },
+    { id: 12, judul: 'Kardus bekas', jenisSampah: 'Anorganik', tanggal: '18 Juni 2026 18.00', koin: 12000 },
+    { id: 13, judul: 'Koran lama', jenisSampah: 'Anorganik', tanggal: '18 Juni 2026 18.00', koin: 3000 },
+]
