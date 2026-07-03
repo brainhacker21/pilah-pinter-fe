@@ -5,14 +5,25 @@ import {
   IconButton, InputAdornment,
 } from '@mui/material'
 import { Visibility, VisibilityOff } from '@mui/icons-material'
+import { useAuth } from "../context/AuthContext";
 import {
-  BRAND_COLOR, EMAIL_REGEX, ROUTES,
-  ERROR_MESSAGES, BUTTON_LABELS, TIMEOUTS,
-} from '../utils/constants.js'
+  BRAND_COLOR,
+  EMAIL_REGEX,
+  ROUTES,
+  ERROR_MESSAGES,
+  BUTTON_LABELS,
+} from "../utils/constants.js";
 
 export default function RegisterPage() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({ nama: '', email: '', password: '', verify: '' })
+  const { register } = useAuth();
+  const [form, setForm] = useState({
+    nama: "",
+    email: "",
+    password: "",
+    verify: "",
+    alamat: "",
+  });
   const [errors, setErrors] = useState({})
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -53,20 +64,21 @@ export default function RegisterPage() {
     setError('')
     setLoading(true)
     try {
-      // TODO: implementasi api backend untuk register
-      await new Promise((r) => setTimeout(r, TIMEOUTS.REGISTER_DELAY))
+      await register(form.nama, form.email, form.password, form.alamat);
       navigate(ROUTES.LOGIN)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registrasi gagal')
     } finally {
       setLoading(false)
     }
   }
 
   const fields = [
-    { name: 'nama', label: 'Nama', type: 'text' },
-    { name: 'email', label: 'E-mail', type: 'email' },
-    { name: 'password', label: 'Kata sandi', type: 'password' },
-    { name: 'verify', label: 'Verifikasi kata sandi', type: 'password' },
-  ]
+    { name: "nama", label: "Nama", type: "text" },
+    { name: "email", label: "E-mail", type: "email" },
+    { name: "password", label: "Kata sandi", type: "password" },
+    { name: "verify", label: "Verifikasi kata sandi", type: "password" },
+  ];
 
   const toggleAdornment = {
     endAdornment: (

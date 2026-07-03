@@ -6,13 +6,15 @@ import {
 } from '@mui/material'
 import { Visibility, VisibilityOff } from '@mui/icons-material'
 import Logo from '../components/Logo'
+import { useAuth } from '../context/AuthContext'
 import {
   BRAND_COLOR, EMAIL_REGEX, ROUTES,
-  ERROR_MESSAGES, BUTTON_LABELS, TIMEOUTS,
+  ERROR_MESSAGES, BUTTON_LABELS,
 } from '../utils/constants.js'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [form, setForm] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
   const [showPassword, setShowPassword] = useState(false)
@@ -48,13 +50,10 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      // TODO: implementasi api backend untuk login
-      await new Promise((r) => setTimeout(r, TIMEOUTS.LOGIN_DELAY))
-      if (form.email && form.password) {
-        navigate(ROUTES.HOME)
-      } else {
-        setError(ERROR_MESSAGES.LOGIN_FAILED)
-      }
+      await login(form.email, form.password)
+      navigate(ROUTES.HOME)
+    } catch (err) {
+      setError(err.response?.data?.message || ERROR_MESSAGES.LOGIN_FAILED)
     } finally {
       setLoading(false)
     }
@@ -142,4 +141,3 @@ export default function LoginPage() {
     </Box>
   )
 }
-
