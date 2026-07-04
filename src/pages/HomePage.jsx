@@ -8,6 +8,7 @@ import FileUploadIcon from '@mui/icons-material/FileUpload'
 import { useAuth } from '../context/AuthContext'
 import { getTransaksiByUser } from '../services/transaksiService'
 import { BRAND_COLOR, ROUTES, ROWS_PER_PAGE, TABLE_COLUMNS } from '../utils/constants.js'
+import formatDate from '../utils/formatDate.js'
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -29,13 +30,6 @@ export default function HomePage() {
   const isEmpty = !loading && transaksiList.length === 0
   const start = page * ROWS_PER_PAGE
   const paginatedData = transaksiList.slice(start, start + ROWS_PER_PAGE)
-
-  const formatDate = (iso) => {
-    const d = new Date(iso)
-    return d.toLocaleDateString('id-ID', {
-      year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
-    })
-  }
 
   return (
     <Box className="min-h-screen bg-[#c8e6c9]">
