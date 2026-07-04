@@ -15,7 +15,7 @@ export const TEXT_DISABLED = '#ca8a04'
 
 // Table Configuration
 export const ROWS_PER_PAGE = 10
-export const TABLE_COLUMNS = ['ID', 'Judul', 'Jenis Sampah', 'Tanggal', 'Koin']
+export const TABLE_COLUMNS = ['ID', 'Kategori', 'Berat (Kg)', 'Tanggal', 'Koin']
 
 // Validation
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

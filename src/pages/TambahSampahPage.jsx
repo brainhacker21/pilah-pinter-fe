@@ -6,31 +6,29 @@ import {
 import FileUploadIcon from '@mui/icons-material/FileUpload'
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { useAuth } from '../context/AuthContext'
+import { klasifikasiSampah } from '../services/sampahService'
 import {
-    ROUTES, BUTTON_LABELS, BRAND_COLOR, TEXT_CONTENT, TIMEOUTS, DIALOG_CONTENT,
+    ROUTES, BUTTON_LABELS, BRAND_COLOR, TEXT_CONTENT, DIALOG_CONTENT,
 } from '../utils/constants.js'
 
 
 export default function TambahSampahPage() {
     const navigate = useNavigate()
+    const { user } = useAuth()
     const [preview, setPreview] = useState(null)
-    const [form, setForm] = useState({ judul: '', berat: '', lokasi: '', catatan: '' })
-    const [errors, setErrors] = useState({})
+    const [selectedFile, setSelectedFile] = useState(null)
+    const [berat, setBerat] = useState('')
+    const [errorBerat, setErrorBerat] = useState('')
     const [loading, setLoading] = useState(false)
     const [success, setSuccess] = useState('')
     const [confirmOpen, setConfirmOpen] = useState(false)
 
-    const handleChange = (e) => {
-        const { name, value } = e.target
-        setForm((prev) => ({ ...prev, [name]: value }))
-        setErrors((prev) => ({ ...prev, [name]: '' }))
-    }
-
     const readImage = (file) => {
         if (!file?.type.startsWith('image/')) return
+        setSelectedFile(file)
         const reader = new FileReader()
         reader.onload = (ev) => setPreview(ev.target?.result)
-        // TODO: implementasi api backend untuk upload gambar dan hasil AI untuk ketahui jenis sampah
         reader.readAsDataURL(file)
     }
 
@@ -39,40 +37,39 @@ export default function TambahSampahPage() {
         readImage(e.dataTransfer.files[0])
     }
 
-    const fields = [
-        { name: 'judul', label: 'Judul' },
-        { name: 'berat', label: 'Berat' },
-        { name: 'lokasi', label: 'Lokasi' },
-        { name: 'catatan', label: 'Catatan tambahan' },
-    ]
-
     const validate = () => {
-        const next = {}
-        fields.forEach(({ name, label }) => {
-            if (!form[name].trim()) next[name] = `${label} wajib diisi.`
-        })
-        setErrors(next)
-        const tidakAdaError = Object.keys(next).length === 0
-        return tidakAdaError
+        if (!berat.trim()) {
+            setErrorBerat('Berat wajib diisi.')
+            return false
+        }
+        if (isNaN(Number(berat)) || Number(berat) <= 0) {
+            setErrorBerat('Berat harus angka positif.')
+            return false
+        }
+        if (!selectedFile) {
+            alert('Silakan upload gambar terlebih dahulu.')
+            return false
+        }
+        return true
     }
 
-    // Step 1: validate then open the confirmation dialog
     const handleSubmit = (e) => {
-        // TODO: implementasi api backend untuk list sampah
         e.preventDefault()
         if (!validate()) return
         setConfirmOpen(true)
     }
 
-    // Step 2: user confirmed — perform the "transaction"
     const handleConfirm = async () => {
         setLoading(true)
         try {
-            await new Promise((r) => setTimeout(r, TIMEOUTS.SUBMIT_DELAY))
+            const { data } = await klasifikasiSampah(selectedFile, berat)
+            const hasil = data.data
             setConfirmOpen(false)
-            // TODO: implementasi api backend untuk submit sampah
-            setSuccess(TEXT_CONTENT.SUCCESS_MESSAGE)
-            setTimeout(() => navigate(ROUTES.HOME), TIMEOUTS.SUCCESS_DELAY)
+            setSuccess(`Sampah terdeteksi sebagai "${hasil.kategori}" — ${hasil.nominal.toLocaleString('id-ID')} Koin`)
+            setTimeout(() => navigate(ROUTES.HOME), 1500)
+        } catch (err) {
+            setConfirmOpen(false)
+            alert(err.response?.data?.message || 'Gagal mengklasifikasikan sampah')
         } finally {
             setLoading(false)
         }
@@ -81,7 +78,6 @@ export default function TambahSampahPage() {
     return (
         <Box className="min-h-screen bg-[#c8e6c9]">
             <Box className="p-4 sm:p-6 max-w-[960px] mx-auto">
-                {/* Banner */}
                 <Card className="mb-4 sm:mb-5 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                     <Avatar className="bg-[#e8f5e9] w-11 h-11">
                         <FileUploadIcon style={{ color: BRAND_COLOR }} />
@@ -104,10 +100,8 @@ export default function TambahSampahPage() {
                     </Button>
                 </Card>
 
-                {/* Upload + Form */}
                 <Card>
                     <Box className="p-4 sm:p-6 flex flex-col md:flex-row gap-5 md:gap-6">
-                        {/* Area upload */}
                         <Box className="flex-1 flex flex-col md:justify-center">
                             <Box
                                 component="label"
@@ -147,25 +141,22 @@ export default function TambahSampahPage() {
                             )}
                         </Box>
 
-                        {/* Form */}
                         <Box className="w-full md:w-[280px] flex flex-col">
                             <Typography variant="subtitle1" className="font-bold mb-4">
                                 Form
                             </Typography>
                             <form onSubmit={handleSubmit} className="flex flex-col gap-3 flex-1" noValidate>
-                                {fields.map(({ name, label }) => (
-                                    <TextField
-                                        key={name}
-                                        name={name}
-                                        label={label}
-                                        value={form[name]}
-                                        onChange={handleChange}
-                                        error={Boolean(errors[name])}
-                                        helperText={errors[name]}
-                                        fullWidth
-                                        slotProps={{ htmlInput: { 'data-testid': `input-${name}` } }}
-                                    />
-                                ))}
+                                <TextField
+                                    name="berat"
+                                    label="Berat (Kg)"
+                                    type="number"
+                                    value={berat}
+                                    onChange={(e) => { setBerat(e.target.value); setErrorBerat('') }}
+                                    error={Boolean(errorBerat)}
+                                    helperText={errorBerat}
+                                    fullWidth
+                                    slotProps={{ htmlInput: { 'data-testid': 'input-berat', min: 0, step: 0.1 } }}
+                                />
 
                                 {success && <Alert severity="success">{success}</Alert>}
 
@@ -187,7 +178,6 @@ export default function TambahSampahPage() {
                 </Card>
             </Box>
 
-            {/* Confirmation dialog before saving the form (transaction) */}
             <ConfirmDialog
                 open={confirmOpen}
                 title={DIALOG_CONTENT.SUBMIT.TITLE}

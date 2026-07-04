@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import AppBar from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
@@ -12,12 +12,29 @@ import Divider from '@mui/material/Divider'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import LogoutIcon from '@mui/icons-material/Logout'
 import PersonIcon from '@mui/icons-material/Person'
+import PropTypes from 'prop-types'
 import Logo from '../components/Logo'
-import { DEFAULT_USERNAME } from '../utils/constants.js'
+import { useAuth } from '../context/AuthContext'
+import { getTransaksiByUser } from '../services/transaksiService'
 
-export default function AppNavbar({ koin = 0, username = DEFAULT_USERNAME, onLogout }) {
+export default function AppNavbar({ onLogout }) {
+  const { user } = useAuth()
   const [anchorEl, setAnchorEl] = useState(null)
+  const [totalKoin, setTotalKoin] = useState(0)
   const menuOpen = Boolean(anchorEl)
+
+  useEffect(() => {
+    if (!user?.id) return
+    getTransaksiByUser(user.id)
+      .then((res) => {
+        const list = res.data.data || [];
+        setTotalKoin(list.reduce((acc, t) => acc + t.nominal, 0));
+      })
+      .catch((error) => {
+        console.error("Gagal fetch transaksi:", error);
+        setTotalKoin(0); //Reset ke 0 jika fetch gagal
+      });
+  }, [user?.id])
 
   const handleLogout = () => {
     setAnchorEl(null)
@@ -27,7 +44,7 @@ export default function AppNavbar({ koin = 0, username = DEFAULT_USERNAME, onLog
   const coinChip = (
     <Typography variant="body2" className="text-black/60 font-medium whitespace-nowrap">
       <span className="text-[#ca8a04]">●</span>{' '}
-      {koin.toLocaleString('id-ID')} Koin
+      {totalKoin.toLocaleString('id-ID')} Koin
     </Typography>
   )
 
@@ -37,12 +54,11 @@ export default function AppNavbar({ koin = 0, username = DEFAULT_USERNAME, onLog
         <Box className="flex items-center gap-2 min-w-0">
           <Logo width={130} />
         </Box>
-
         {/* Desktop: coin + username + logout button */}
         <Box className="hidden sm:flex items-center gap-6">
           {coinChip}
           <Typography variant="body2" className="text-black/60 cursor-pointer">
-            {username}
+            {user?.nama || "User"}
           </Typography>
           <Button
             variant="contained"
@@ -55,7 +71,6 @@ export default function AppNavbar({ koin = 0, username = DEFAULT_USERNAME, onLog
           </Button>
         </Box>
 
-        {/* Mobile: coin chip stays + overflow menu */}
         <Box className="flex sm:hidden items-center gap-2">
           {coinChip}
           <IconButton
@@ -70,14 +85,14 @@ export default function AppNavbar({ koin = 0, username = DEFAULT_USERNAME, onLog
             anchorEl={anchorEl}
             open={menuOpen}
             onClose={() => setAnchorEl(null)}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
             <MenuItem disabled>
               <ListItemIcon>
                 <PersonIcon fontSize="small" />
               </ListItemIcon>
-              {username}
+              {user?.nama || "User"}
             </MenuItem>
             <Divider />
             <MenuItem onClick={handleLogout} data-testid="button-keluar-mobile">
@@ -90,5 +105,9 @@ export default function AppNavbar({ koin = 0, username = DEFAULT_USERNAME, onLog
         </Box>
       </Toolbar>
     </AppBar>
-  )
+  );
+}
+
+AppNavbar.propTypes = {
+  onLogout: PropTypes.func,
 }

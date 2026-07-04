@@ -6,22 +6,35 @@ import HomePage from './pages/HomePage'
 import TambahSampahPage from './pages/TambahSampahPage'
 import AppNavbar from './components/AppNavbar'
 import ConfirmDialog from './components/ConfirmDialog'
-import { DUMMY_DATA } from './utils/dummy'
+import { useAuth } from './context/AuthContext'
 import { ROUTES, DIALOG_CONTENT } from './utils/constants.js'
+
+function ProtectedRoute() {
+  const { isAuthenticated, loading } = useAuth()
+  if (loading) return null
+  return isAuthenticated ? <Outlet /> : <Navigate to={ROUTES.LOGIN} replace />
+}
+
+function AuthRoute({ children }) {
+  const { isAuthenticated, loading } = useAuth()
+  if (loading) return null
+  return isAuthenticated ? <Navigate to={ROUTES.HOME} replace /> : children
+}
 
 function MainLayout() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
   const [logoutOpen, setLogoutOpen] = useState(false)
-  const totalKoin = DUMMY_DATA.reduce((acc, s) => acc + s.koin, 0)
 
-  const confirmLogout = () => {
+  const confirmLogout = async () => {
     setLogoutOpen(false)
+    await logout()
     navigate(ROUTES.LOGIN)
   }
 
   return (
     <>
-      <AppNavbar koin={totalKoin} username="Test" onLogout={() => setLogoutOpen(true)} />
+      <AppNavbar onLogout={() => setLogoutOpen(true)} />
       <Outlet />
       <ConfirmDialog
         open={logoutOpen}
@@ -40,12 +53,14 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to={ROUTES.LOGIN} replace />} />
-      <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-      <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+      <Route path={ROUTES.LOGIN} element={<AuthRoute><LoginPage /></AuthRoute>} />
+      <Route path={ROUTES.REGISTER} element={<AuthRoute><RegisterPage /></AuthRoute>} />
 
-      <Route element={<MainLayout />}>
-        <Route path={ROUTES.HOME} element={<HomePage />} />
-        <Route path={ROUTES.TAMBAH} element={<TambahSampahPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route element={<MainLayout />}>
+          <Route path={ROUTES.HOME} element={<HomePage />} />
+          <Route path={ROUTES.TAMBAH} element={<TambahSampahPage />} />
+        </Route>
       </Route>
     </Routes>
   )
