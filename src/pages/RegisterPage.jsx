@@ -25,7 +25,7 @@ export default function RegisterPage() {
     alamat: "",
   });
   const [errors, setErrors] = useState({})
-  const [showPassword, setShowPassword] = useState(false)
+  const [passwordVisibility, setPasswordVisibility] = useState({ password: false, verify: false })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -80,19 +80,28 @@ export default function RegisterPage() {
     { name: "verify", label: "Verifikasi kata sandi", type: "password" },
   ];
 
-  const toggleAdornment = {
-    endAdornment: (
-      <InputAdornment position="end">
-        <IconButton
-          onClick={() => setShowPassword((s) => !s)}
-          edge="end"
-          aria-label="Tampilkan kata sandi"
-        >
-          {showPassword ? <VisibilityOff /> : <Visibility />}
-        </IconButton>
-      </InputAdornment>
-    ),
-  }
+  const getToggleAdornment = (fieldName) => {
+    const toggleVisibility = () => {
+      setPasswordVisibility((prevState) => ({
+        ...prevState,
+        [fieldName]: !prevState[fieldName]
+      }));
+    };
+
+    return {
+      endAdornment: (
+        <InputAdornment position="end">
+          <IconButton
+            onClick={toggleVisibility}
+            edge="end"
+            aria-label="Tampilkan kata sandi"
+          >
+            {passwordVisibility[fieldName] ? <VisibilityOff /> : <Visibility />}
+          </IconButton>
+        </InputAdornment>
+      ),
+    };
+  };
 
   return (
     <Box className="min-h-screen bg-[#c8e6c9] flex items-center justify-center p-4">
@@ -105,12 +114,13 @@ export default function RegisterPage() {
           <form onSubmit={handleRegister} noValidate>
             {fields.map(({ name, label, type }) => {
               const isPassword = type === 'password'
+              const isShown = passwordVisibility[name]
               return (
                 <TextField
                   key={name}
                   name={name}
                   label={label}
-                  type={isPassword && showPassword ? 'text' : type}
+                  type={isPassword && isShown ? 'text' : type}
                   value={form[name]}
                   onChange={handleChange}
                   error={Boolean(errors[name])}
@@ -118,7 +128,7 @@ export default function RegisterPage() {
                   fullWidth
                   slotProps={{
                     htmlInput: { 'data-testid': `input-${name}` },
-                    ...(isPassword ? { input: toggleAdornment } : {}),
+                    ...(isPassword ? { input: getToggleAdornment(name) } : {}),
                   }}
                   className="mb-4"
                 />
