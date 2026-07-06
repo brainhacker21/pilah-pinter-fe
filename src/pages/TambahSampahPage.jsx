@@ -21,12 +21,24 @@ export default function TambahSampahPage() {
     const [berat, setBerat] = useState('')
     const [errorBerat, setErrorBerat] = useState('')
     const [loading, setLoading] = useState(false)
-    const [success, setSuccess] = useState('')
     const [confirmOpen, setConfirmOpen] = useState(false)
+    const [hasil, setHasil] = useState(null)
+
+    // Berat harus valid (angka positif) sebelum upload gambar diizinkan.
+    const beratValid = berat.trim() !== '' && !isNaN(Number(berat)) && Number(berat) > 0
+    // Setelah "Hitung" berhasil, tombol berubah menjadi "Submit".
+    const sudahHitung = Boolean(hasil)
+
+    // Gambar baru / berat berubah membatalkan hasil hitung sebelumnya.
+    const resetHasil = () => {
+        if (hasil) setHasil(null)
+    }
 
     const readImage = (file) => {
+        if (!beratValid) return
         if (!file?.type.startsWith('image/')) return
         setSelectedFile(file)
+        resetHasil()
         const reader = new FileReader()
         reader.onload = (ev) => setPreview(ev.target?.result)
         reader.readAsDataURL(file)
@@ -34,7 +46,14 @@ export default function TambahSampahPage() {
 
     const handleDrop = (e) => {
         e.preventDefault()
+        if (!beratValid) return
         readImage(e.dataTransfer.files[0])
+    }
+
+    const handleBeratChange = (e) => {
+        setBerat(e.target.value)
+        setErrorBerat('')
+        resetHasil()
     }
 
     const validate = () => {
@@ -53,26 +72,34 @@ export default function TambahSampahPage() {
         return true
     }
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
+    // Langkah "Hitung": panggil API klasifikasi lalu tampilkan hasilnya.
+    const handleHitung = async () => {
         if (!validate()) return
-        setConfirmOpen(true)
-    }
-
-    const handleConfirm = async () => {
         setLoading(true)
         try {
-            const { data } = await klasifikasiSampah(selectedFile, berat)
-            const hasil = data.data
-            setConfirmOpen(false)
-            setSuccess(`Sampah terdeteksi sebagai "${hasil.kategori}" — ${hasil.nominal.toLocaleString('id-ID')} Koin`)
-            setTimeout(() => navigate(ROUTES.HOME), 1500)
+            const { data } = await klasifikasiSampah(selectedFile, berat, user?.id)
+            setHasil(data.data)
         } catch (err) {
-            setConfirmOpen(false)
             alert(err.response?.data?.message || 'Gagal mengklasifikasikan sampah')
         } finally {
             setLoading(false)
         }
+    }
+
+    // Langkah "Submit": buka dialog konfirmasi.
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        if (sudahHitung) {
+            setConfirmOpen(true)
+        } else {
+            handleHitung()
+        }
+    }
+
+    // Konfirmasi "iya" → redirect ke home.
+    const handleConfirm = () => {
+        setConfirmOpen(false)
+        setTimeout(() => navigate(ROUTES.HOME), 1500)
     }
 
     return (
@@ -107,13 +134,17 @@ export default function TambahSampahPage() {
                                 component="label"
                                 onDragOver={(e) => e.preventDefault()}
                                 onDrop={handleDrop}
-                                className="border-2 border-dashed border-[#c8e6c9] rounded-2xl bg-[#e8f5e9] h-[200px] sm:h-[260px] flex flex-col items-center justify-center cursor-pointer relative overflow-hidden transition-colors duration-200 hover:border-[#388e3c]"
+                                className={`border-2 border-dashed rounded-2xl bg-[#e8f5e9] h-[200px] sm:h-[260px] flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-200 ${beratValid
+                                    ? 'border-[#c8e6c9] cursor-pointer hover:border-[#388e3c]'
+                                    : 'border-[#c8e6c9] cursor-not-allowed opacity-60'}`}
+                                aria-disabled={!beratValid}
                                 data-testid="upload-area"
                             >
                                 <input
                                     type="file"
                                     accept="image/*"
                                     className="hidden"
+                                    disabled={!beratValid}
                                     onChange={(e) => readImage(e.target.files?.[0])}
                                     data-testid="input-file"
                                 />
@@ -122,15 +153,23 @@ export default function TambahSampahPage() {
                                 ) : (
                                     <>
                                         <AddPhotoAlternateIcon className="text-[48px] sm:text-[56px] text-[#388e3c] mb-3" />
-                                        <Typography variant="body1" className="font-semibold text-center px-4">
-                                            Ambil foto langsung
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" className="mt-1 text-center px-4">
-                                            atau{' '}
-                                            <span className="text-[#388e3c] font-semibold cursor-pointer">
-                                                tambah file gambar anda
-                                            </span>
-                                        </Typography>
+                                        {beratValid ? (
+                                            <>
+                                                <Typography variant="body1" className="font-semibold text-center px-4">
+                                                    Ambil foto langsung
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary" className="mt-1 text-center px-4">
+                                                    atau{' '}
+                                                    <span className="text-[#388e3c] font-semibold cursor-pointer">
+                                                        tambah file gambar anda
+                                                    </span>
+                                                </Typography>
+                                            </>
+                                        ) : (
+                                            <Typography variant="body2" color="text.secondary" className="mt-1 text-center px-4">
+                                                Isi berat terlebih dahulu untuk mengunggah gambar
+                                            </Typography>
+                                        )}
                                     </>
                                 )}
                             </Box>
@@ -151,25 +190,41 @@ export default function TambahSampahPage() {
                                     label="Berat (Kg)"
                                     type="number"
                                     value={berat}
-                                    onChange={(e) => { setBerat(e.target.value); setErrorBerat('') }}
+                                    onChange={handleBeratChange}
                                     error={Boolean(errorBerat)}
                                     helperText={errorBerat}
                                     fullWidth
                                     slotProps={{ htmlInput: { 'data-testid': 'input-berat', min: 0, step: 0.1 } }}
                                 />
 
-                                {success && <Alert severity="success">{success}</Alert>}
-
+                                {hasil && (
+                                    <Box className="rounded-xl bg-[#e8f5e9] p-3 flex flex-col gap-1" data-testid="hasil-hitung">
+                                        <Box className="flex justify-between">
+                                            <Typography variant="body2" color="text.secondary">Kategori</Typography>
+                                            <Typography variant="body2" className="font-semibold capitalize">{hasil.kategori}</Typography>
+                                        </Box>
+                                        <Box className="flex justify-between">
+                                            <Typography variant="body2" color="text.secondary">Harga / Kg</Typography>
+                                            <Typography variant="body2" className="font-semibold">{hasil.hargaPerKg.toLocaleString('id-ID')} Koin</Typography>
+                                        </Box>
+                                        <Box className="flex justify-between">
+                                            <Typography variant="body2" color="text.secondary">Total</Typography>
+                                            <Typography variant="body2" className="font-bold" style={{ color: BRAND_COLOR }}>{hasil.nominal.toLocaleString('id-ID')} Koin</Typography>
+                                        </Box>
+                                    </Box>
+                                )}
                                 <Box className="mt-4 md:mt-auto">
                                     <Button
                                         type="submit"
-                                        variant="outlined"
+                                        variant={sudahHitung ? 'contained' : 'outlined'}
                                         color="primary"
                                         fullWidth
                                         disabled={loading}
                                         data-testid="button-submit"
                                     >
-                                        {loading ? BUTTON_LABELS.LOADING_SUBMIT : BUTTON_LABELS.SUBMIT}
+                                        {loading
+                                            ? (sudahHitung ? BUTTON_LABELS.LOADING_SUBMIT : BUTTON_LABELS.LOADING_HITUNG)
+                                            : (sudahHitung ? BUTTON_LABELS.SUBMIT : BUTTON_LABELS.HITUNG)}
                                     </Button>
                                 </Box>
                             </form>

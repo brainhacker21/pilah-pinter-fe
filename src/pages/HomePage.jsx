@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box, Card, Button, Typography, Avatar, Divider,
@@ -7,29 +7,38 @@ import {
 import FileUploadIcon from '@mui/icons-material/FileUpload'
 import { useAuth } from '../context/AuthContext'
 import { getTransaksiByUser } from '../services/transaksiService'
-import { BRAND_COLOR, ROUTES, ROWS_PER_PAGE, TABLE_COLUMNS } from '../utils/constants.js'
+import { BRAND_COLOR, ROUTES, TABLE_COLUMNS } from '../utils/constants.js'
 import formatDate from '../utils/formatDate.js'
 
 export default function HomePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [transaksiList, setTransaksiList] = useState([])
+  const [totalData, setTotalData] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(0)
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user?.id) return
     setLoading(true)
-    getTransaksiByUser(user.id)
-      .then((res) => setTransaksiList(res.data.data || []))
-      .catch(() => setTransaksiList([]))
+    getTransaksiByUser(user.id, page + 1)
+      .then((res) => {
+        setTransaksiList(res.data.data.data || [])
+        setTotalData(res.data.data.pagination?.totalData)
+        setRowsPerPage(res.data.data.pagination?.limit)
+      })
+      .catch(() => {
+        setTransaksiList([])
+        setTotalData(0)
+      })
       .finally(() => setLoading(false))
-  }, [user?.id])
+  }, [user?.id, page])
 
   const totalKoin = transaksiList.reduce((acc, t) => acc + t.nominal, 0)
   const isEmpty = !loading && transaksiList.length === 0
-  const start = page * ROWS_PER_PAGE
-  const paginatedData = transaksiList.slice(start, start + ROWS_PER_PAGE)
+  // Server sudah memotong per halaman, jadi tampilkan apa adanya.
+  const paginatedData = transaksiList
 
   return (
     <Box className="min-h-screen bg-[#c8e6c9]">
@@ -87,7 +96,13 @@ export default function HomePage() {
                   </TableHead>
                   <TableBody>
                     {paginatedData.map((row) => (
-                      <TableRow key={row.id} hover data-testid={`row-sampah-${row.id}`}>
+                      <TableRow
+                        key={row.id}
+                        hover
+                        className="cursor-pointer"
+                        onClick={() => navigate(`${ROUTES.DETAIL}/${row.id}`)}
+                        data-testid={`row-sampah-${row.id}`}
+                      >
                         <TableCell>{row.id}</TableCell>
                         <TableCell className="capitalize">{row.kategori}</TableCell>
                         <TableCell>{row.beratKg}</TableCell>
@@ -106,7 +121,10 @@ export default function HomePage() {
               <Box className="md:hidden">
                 {paginatedData.map((row, idx) => (
                   <Box key={row.id} data-testid={`row-sampah-${row.id}`}>
-                    <Box className="p-4 flex flex-col gap-1.5">
+                    <Box
+                      className="p-4 flex flex-col gap-1.5 cursor-pointer"
+                      onClick={() => navigate(`${ROUTES.DETAIL}/${row.id}`)}
+                    >
                       <Box className="flex items-start justify-between gap-3">
                         <Typography variant="body1" className="font-semibold leading-tight capitalize">
                           {row.kategori}
@@ -138,11 +156,11 @@ export default function HomePage() {
 
               <TablePagination
                 component="div"
-                count={transaksiList.length}
+                count={totalData}
                 page={page}
                 onPageChange={(_, newPage) => setPage(newPage)}
-                rowsPerPage={ROWS_PER_PAGE}
-                rowsPerPageOptions={[ROWS_PER_PAGE]}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={[rowsPerPage]}
                 labelDisplayedRows={({ from, to, count }) => `${from}-${to} of ${count}`}
               />
             </>

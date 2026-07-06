@@ -14,7 +14,6 @@ export const TEXT_DARK = '#1a1a1a'
 export const TEXT_DISABLED = '#ca8a04'
 
 // Table Configuration
-export const ROWS_PER_PAGE = 10
 export const TABLE_COLUMNS = ['ID', 'Kategori', 'Berat (Kg)', 'Tanggal', 'Koin']
 
 // Validation
@@ -28,6 +27,7 @@ export const ROUTES = {
   REGISTER: '/register',
   HOME: '/home',
   TAMBAH: '/tambah',
+  DETAIL: '/detail',
 }
 
 // Messages
@@ -50,6 +50,8 @@ export const BUTTON_LABELS = {
   LOADING_REGISTER: 'Mendaftar...',
   SUBMIT: 'Submit',
   LOADING_SUBMIT: 'Menyimpan...',
+  HITUNG: 'Hitung',
+  LOADING_HITUNG: 'Menghitung...',
   LOGOUT: 'Keluar',
   TAKE: 'Ambil',
   CHANGE_IMAGE: 'Klik untuk ganti gambar',
@@ -79,6 +81,7 @@ export const PAGE_TITLES = {
   REGISTER: 'Registrasi',
   HOME: 'Beranda',
   TAMBAH: 'Tambah Sampah',
+  DETAIL: 'Detail Sampah',
 }
 
 // Form Labels
