@@ -27,7 +27,7 @@ export default function AppNavbar({ onLogout }) {
     if (!user?.id) return
     getTransaksiByUser(user.id)
       .then((res) => {
-        const list = res.data.data || [];
+        const list = res.data.data.data || [];
         setTotalKoin(list.reduce((acc, t) => acc + t.nominal, 0));
       })
       .catch((error) => {
