@@ -27,6 +27,7 @@ export const ROUTES = {
   REGISTER: '/register',
   HOME: '/home',
   TAMBAH: '/tambah',
+  DETAIL: '/detail',
 }
 
 // Messages
@@ -80,6 +81,7 @@ export const PAGE_TITLES = {
   REGISTER: 'Registrasi',
   HOME: 'Beranda',
   TAMBAH: 'Tambah Sampah',
+  DETAIL: 'Detail Sampah',
 }
 
 // Form Labels

@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import HomePage from './pages/HomePage'
 import TambahSampahPage from './pages/TambahSampahPage'
+import DetailsSampahPage from './pages/DetailsSampahPage'
 import AppNavbar from './components/AppNavbar'
 import ConfirmDialog from './components/ConfirmDialog'
 import { useAuth } from './context/AuthContext'
@@ -60,6 +61,7 @@ export default function App() {
         <Route element={<MainLayout />}>
           <Route path={ROUTES.HOME} element={<HomePage />} />
           <Route path={ROUTES.TAMBAH} element={<TambahSampahPage />} />
+          <Route path={`${ROUTES.DETAIL}/:id`} element={<DetailsSampahPage />} />
         </Route>
       </Route>
     </Routes>
