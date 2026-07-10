@@ -1,11 +1,15 @@
-import api from '../config/api'
+import api from "../config/api";
 
-export const getAllTransaksi = () => api.get('/transaksi')
+export const getAllTransaksi = () => api.get("/transaksi");
 
 export const getTransaksiByUser = (userId, page) =>
-  api.get(`/transaksi/user/${userId}`, { params: page > 1 ? { page } : {} })
+  api.get(`/transaksi/user/${userId}`, { params: page > 1 ? { page } : {} });
 
-export const getTransaksiById = (id) => api.get(`/transaksi/${id}`)
+export const getTransaksiById = (id) => api.get(`/transaksi/${id}`);
 
 export const getTransaksiGambar = (id) =>
-  api.get(`/transaksi/${id}/gambar`, { responseType: 'blob' })
+  api.get(`/transaksi/${id}/gambar`, { responseType: "blob" });
+
+export const postSubmitTransaksi = (id) => {
+  return api.post(`/transaksi/${id}/submit`);
+};
