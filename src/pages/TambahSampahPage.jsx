@@ -239,30 +239,6 @@ export default function TambahSampahPage() {
   return (
     <Box className="min-h-screen bg-[#c8e6c9]">
       <Box className="mx-auto max-w-[960px] p-4 sm:p-6">
-        <Card className="mb-4 flex flex-col items-start gap-3 p-4 sm:mb-5 sm:flex-row sm:items-center sm:gap-4">
-          <Avatar className="h-11 w-11 bg-[#e8f5e9]">
-            <FileUploadIcon sx={{ color: BRAND_COLOR }} />
-          </Avatar>
-          <Box className="flex-1">
-            <Typography variant="body1" className="font-semibold">
-              Dapatkan koin dengan menentukan jenis sampah
-            </Typography>
-
-            <Typography variant="body2" color="text.secondary">
-              Siapkan file gambar atau gunakan kamera Anda
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => navigate(ROUTES.HOME)}
-            className="w-full sm:w-auto"
-            disabled={loading}
-          >
-            Ambil
-          </Button>
-        </Card>
-
         <Card>
           <Box className="flex flex-col gap-5 p-4 sm:p-6 md:flex-row md:gap-6">
             <Box className="flex flex-1 flex-col md:justify-center">
