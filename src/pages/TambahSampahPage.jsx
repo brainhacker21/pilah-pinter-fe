@@ -30,6 +30,7 @@ export default function TambahSampahPage() {
   const [preview, setPreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [berat, setBerat] = useState("");
+  const [imageOrientation, setImageOrientation] = useState(null);
   const [error, setError] = useState({
     berat: false,
     general: false,
@@ -68,7 +69,17 @@ export default function TambahSampahPage() {
     const reader = new FileReader();
 
     reader.onload = (event) => {
-      setPreview(event.target?.result);
+      const dataUrl = event.target?.result;
+      setPreview(dataUrl);
+
+      // Detect image orientation
+      const img = new Image();
+      img.onload = () => {
+        setImageOrientation(
+          img.naturalWidth >= img.naturalHeight ? "landscape" : "portrait",
+        );
+      };
+      img.src = dataUrl;
     };
 
     reader.onerror = () => {
@@ -246,7 +257,7 @@ export default function TambahSampahPage() {
                 component="label"
                 onDragOver={(event) => event.preventDefault()}
                 onDrop={handleDrop}
-                className={`relative flex h-[200px] flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed bg-[#e8f5e9] transition-colors duration-200 sm:h-[260px] ${
+                className={`relative flex min-h-[${imageOrientation === "portrait" ? "400" : "200"}px] flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed bg-[#e8f5e9] transition-colors duration-200 sm:h-[${imageOrientation === "portrait" ? "400" : "260"}px] ${
                   beratValid && !loading
                     ? "cursor-pointer border-[#c8e6c9] hover:border-[#388e3c]"
                     : "cursor-not-allowed border-[#c8e6c9] opacity-60"
@@ -273,7 +284,11 @@ export default function TambahSampahPage() {
                   <img
                     src={preview}
                     alt="Pratinjau sampah"
-                    className="absolute inset-0 h-full w-full object-cover"
+                    className={`absolute ${
+                      imageOrientation === "portrait"
+                        ? "h-full w-auto inset-x-auto inset-y-0 mx-auto"
+                        : "w-full h-auto inset-y-auto inset-x-0 my-auto"
+                    } object-contain`}
                   />
                 ) : (
                   <>
@@ -402,7 +417,7 @@ export default function TambahSampahPage() {
                   </Box>
                 )}
 
-                <Box className="mt-4 md:mt-auto">
+                <Box className="mt-4">
                   <Button
                     type="submit"
                     variant={sudahHitung ? "contained" : "outlined"}
